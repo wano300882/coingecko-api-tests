@@ -1,0 +1,41 @@
+name: full test suite
+
+on:
+  schedule:
+    - cron: "0 6 * * *"  # каждый день в 6 утра UTC
+  workflow_dispatch:       # или вручную через кнопку в GitHub
+
+jobs:
+  full:
+    name: Полный прогон (Python 3.12)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Установка зависимостей
+        run: pip install -r requirements.txt
+
+      - name: Запуск всех тестов параллельно
+        env:
+          ENV: prod
+          API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+        run: pytest -n auto
+
+      # При падении сохраняем лог — удобно разбирать что пошло не так
+      - name: Сохранить лог в файл
+        if: failure()
+        run: pytest -n auto 2>&1 | tee pytest-log.txt || true
+
+      - name: Загрузить лог как артефакт
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-log
+          path: pytest-log.txt
+        continue-on-error: true

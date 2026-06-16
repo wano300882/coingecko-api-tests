@@ -1,0 +1,5 @@
+requests>=2.31.0
+pytest>=8.0.0
+pytest-rerunfailures>=13.0   # retry on flaky network / 429 rate-limit responses
+pytest-xdist>=3.5.0          # parallel test execution (-n auto)
+python-dotenv>=1.0.0         # .env.{ENV} file loading

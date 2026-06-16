@@ -1,0 +1,35 @@
+name: fast tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  fast:
+    name: Fast tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false  # если упал один питон — продолжаем проверять остальные
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Установка зависимостей
+        run: pip install -r requirements.txt
+
+      - name: Запуск fast тестов
+        env:
+          ENV: prod
+          # Для бесплатного API ключ не нужен, секрет просто будет пустым
+          API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+        run: pytest -m fast -n auto
